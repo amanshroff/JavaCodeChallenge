@@ -17,31 +17,42 @@ import java.math.BigDecimal;
 @RequestMapping(TransferController.SERVICE_PATH)
 @Slf4j
 public class TransferController {
-    public static final String SERVICE_PATH = "v1/transfer";
+    public static final String SERVICE_PATH = "/v1/transfer";
 
     private TransferService transferService;
     private EmailNotificationService emailNotificationService;
     private AccountsService accountsService;
 
-
-    @GetMapping (value = "{fromBankAccountId}/{toBankAccountId}/{amount}")
-    @ResponseStatus(value = HttpStatus.OK)
+    @PostMapping (path = "/{fromBankAccountId}/{toBankAccountId}/{amount}")
     public ResponseEntity<Object> transfer(@PathVariable(name = "fromBankAccountId") String fromBankAccountId,
+                                           @PathVariable(name = "toBankAccountId") String toBankAccountId,
+                                           @PathVariable (name = "amount") BigDecimal amount) {
+        log.info("/{}/{}/{} called with amount: {}", "", fromBankAccountId, toBankAccountId, amount);
+
+        try {
+            transferService.transfer(fromBankAccountId, toBankAccountId, amount);
+        } catch (InsufficientBalanceManagerException ex) {
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+
+        emailNotificationService.notifyAboutTransfer(accountsService.getAccount(fromBankAccountId), "Amount = " + amount + "Transferred to " + toBankAccountId);
+        emailNotificationService.notifyAboutTransfer(accountsService.getAccount(toBankAccountId), "Amount = " + amount + "Transferred from " + fromBankAccountId);
+
+        return new ResponseEntity<>(HttpStatus.CREATED);
+
+    }
+
+   /* @PostMapping (path = "/{fromBankAccountId}/{toBankAccountId}/{amount}")
+    @ResponseStatus(value = HttpStatus.OK)
+    public void transfer(@PathVariable(name = "fromBankAccountId") String fromBankAccountId,
                          @PathVariable(name = "toBankAccountId") String toBankAccountId,
                          @PathVariable (name = "amount")BigDecimal amount) {
         log.info("/{}/{}/{} called with amount: {}", SERVICE_PATH, fromBankAccountId, toBankAccountId, amount);
-        try {
-            transferService.transfer(fromBankAccountId, toBankAccountId, amount);
-        } catch (InsufficientBalanceManagerException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-        catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-        emailNotificationService.notifyAboutTransfer(accountsService.getAccount(fromBankAccountId),"Amount = "+ amount + "Transferred to " +toBankAccountId);
-        emailNotificationService.notifyAboutTransfer(accountsService.getAccount(toBankAccountId),"Amount = "+ amount + "Transferred from " +fromBankAccountId);
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        transferService.transfer(fromBankAccountId, toBankAccountId, amount);
 
-    }
+        emailNotificationService.notifyAboutTransfer(accountsService.getAccount(fromBankAccountId), "Amount = " + amount + "Transferred to " + toBankAccountId);
+        emailNotificationService.notifyAboutTransfer(accountsService.getAccount(toBankAccountId), "Amount = " + amount + "Transferred from " + fromBankAccountId);
+
+    }*/
 }
