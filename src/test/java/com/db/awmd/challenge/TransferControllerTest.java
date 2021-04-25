@@ -52,13 +52,10 @@ public class TransferControllerTest {
 
     @Test
     public void executeTransfer() throws Exception {
-        String uniqueId = "Id-1001";
-        Account account = new Account(uniqueId, new BigDecimal("220.45"));
-        this.accountsService.createAccount(account);
-        String uniqueAccountId2 = "Id-2002";
-        Account account2 = new Account(uniqueAccountId2, new BigDecimal("100"));
-        this.accountsService.createAccount(account2);
-        BigDecimal amount = new BigDecimal("120.45");
-        this.mockMvc.perform(post("/v1/transfer/Id-1001/Id-1002/\" + amount")).andExpect(status().isBadRequest());
+        this.mockMvc.perform(post("/v1/accounts").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"accountId\":\"Id-123\",\"balance\":1000}")).andExpect(status().isCreated());
+        this.mockMvc.perform(post("/v1/accounts").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"accountId\":\"Id-456\",\"balance\":1000}")).andExpect(status().isCreated());
+        this.mockMvc.perform(post("/v1/transfer/Id-123/Id-456/1200")).andExpect(status().isBadRequest());
     }
 }
