@@ -56,6 +56,7 @@ public class TransferControllerTest {
                 .content("{\"accountId\":\"Id-123\",\"balance\":1000}")).andExpect(status().isCreated());
         this.mockMvc.perform(post("/v1/accounts").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"accountId\":\"Id-456\",\"balance\":1000}")).andExpect(status().isCreated());
-        this.mockMvc.perform(post("/v1/transfer/Id-123/Id-456/1200")).andExpect(status().isBadRequest());
+        this.mockMvc.perform(post("/v1/transfer").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"fromBankAccountId\":\"Id-123\",\"toBankAccountId\":\"Id-456\",\"amount\":1200}")).andExpect(status().isBadRequest());
     }
 }
